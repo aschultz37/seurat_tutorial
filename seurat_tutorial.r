@@ -4,7 +4,7 @@ library(patchwork)
 
 # INITIALIZING SEURAT OBJECT
 # Set working directory
-setwd('/gpfs/home/acs9950/singlecell/seurat_tutorial/')
+#setwd('/gpfs/home/acs9950/singlecell/seurat_tutorial/')
 
 # Load the dataset
 scobj.data <- Read10X(data.dir="raw/")
@@ -61,8 +61,8 @@ DimHeatmap(scobj, dims=1:2, cells=500, balanced=TRUE)
 
 # DETERMINE DIMENSIONALITY OF DATASET
 # determines # of PC to include (low p val); removes noise
-scobj <- JackStraw(scobj, dims=35, num.replicate=100)
-scobj <- ScoreJackStraw(scobj, dims=1:35)
+scobj <- JackStraw(scobj, dims=30, num.replicate=100)
+scobj <- ScoreJackStraw(scobj, dims=1:30)
 
 # can visually determine dropoff in p-value after certain # PC
 JackStrawPlot(scobj, dims=1:30)
@@ -71,8 +71,8 @@ JackStrawPlot(scobj, dims=1:30)
 ElbowPlot(scobj, ndims=30)
 
 # CLUSTERING CELLS
-scobj <- FindNeighbors(scobj, dims=1:27)     # choose dim based on PCA
-scobj <- FindClusters(scobj, resolution=0.4) # resolution determines # clusters
+scobj <- FindNeighbors(scobj, dims=1:23)     # choose dim based on PCA
+scobj <- FindClusters(scobj, resolution=0.5) # resolution determines # clusters
 
 # View cluster ID of cells
 head(Idents(scobj), 5)
@@ -107,7 +107,7 @@ scobj.markers <- FindAllMarkers(scobj, only.pos=TRUE, min.pct=0.25,
                                 logfc.threshold=0.25)
 scobj.markers %>%
     group_by(cluster) %>%
-    slice_max(n=2, orber_by=avg_log2FC)
+    slice_max(n=2, order_by=avg_log2FC)
 
 # multiple tests for differential expression are avail, e.g.:
 cluster0.markers <- FindMarkers(scobj, ident.1=0, logfc.threshold=0.25,
@@ -120,8 +120,8 @@ VlnPlot(scobj, features=c("S1pr1", "Vps37b"))
 VlnPlot(scobj, features=c("S1pr1", "Vps37b"), slot="counts", log=TRUE)
 
 # visualize feature expression on tSNE or PCA plot
-FeaturePlot(scobj, features=c("Cxcr6", "Cxcr4", "Ccl4", "S1pr1", "Vps37b", 
-                              "Cd69", "Ifng", "Gzma", "Gzmf"))
+FeaturePlot(scobj, features=c("Cxcr6", "Cxcr4", "S1pr1", "Klf2", "Itgae", 
+                              "Cd69", "Ifng", "Tcf7"))
 
 # N.B. can also try RidgePlot, CellScatter, and DotPlot to view dataset
 
@@ -136,3 +136,6 @@ new.cluster.ids <- c("Type1", "Type2", "Type3", "Type4", "Type5", "Type6")
 names(new.cluster.ids) <- levels(scobj)
 scobj <- RenameIdents(scobj, new.cluster.ids)
 DimPlot(scobj, reduction="umap", label=TRUE, pt.size=0.5) + NoLegend()
+
+# save again, includes plots
+saveRDS(scobj, file="output/seurat_tutorial_figures.rds")
